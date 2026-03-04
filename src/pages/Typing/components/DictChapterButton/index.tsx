@@ -33,7 +33,7 @@ export const DictChapterButton = () => {
           <Listbox value={currentChapter} onChange={setCurrentChapter}>
             <Listbox.Button
               onKeyDown={handleKeyDown}
-              className="rounded-lg px-3 py-1 text-lg transition-colors duration-300 ease-in-out hover:bg-indigo-400 hover:text-white focus:outline-none dark:text-white dark:text-opacity-60 dark:hover:text-opacity-100"
+              className="whitespace-nowrap rounded-lg px-3 py-1 text-lg transition-colors duration-300 ease-in-out hover:bg-indigo-400 hover:text-white focus:outline-none dark:text-white dark:text-opacity-60 dark:hover:text-opacity-100"
             >
               第 {currentChapter + 1} 章
             </Listbox.Button>
@@ -48,7 +48,7 @@ export const DictChapterButton = () => {
                             <IconCheck className="focus:outline-none" />
                           </span>
                         ) : null}
-                        <span>第 {index + 1} 章</span>
+                        <span className="whitespace-nowrap">第 {index + 1} 章</span>
                       </div>
                     )}
                   </Listbox.Option>
