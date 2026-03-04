@@ -11,6 +11,7 @@ import type { WordPronunciationIconRef } from '@/components/WordPronunciationIco
 import { WordPronunciationIcon } from '@/components/WordPronunciationIcon'
 import { EXPLICIT_SPACE } from '@/constants'
 import useKeySounds from '@/hooks/useKeySounds'
+import { generateWordSoundSrc } from '@/hooks/usePronunciation'
 import { TypingContext, TypingStateActionType } from '@/pages/Typing/store'
 import {
   currentChapterAtom,
@@ -18,6 +19,7 @@ import {
   isIgnoreCaseAtom,
   isShowAnswerOnHoverAtom,
   isTextSelectableAtom,
+  pronunciationConfigAtom,
   pronunciationIsOpenAtom,
   wordDictationConfigAtom,
 } from '@/store'
@@ -44,6 +46,7 @@ export default function WordComponent({ word, onFinish }: { word: Word; onFinish
   // const wordLogUploader = useMixPanelWordLogUploader(state)
   const [playKeySound, playBeepSound, playHintSound] = useKeySounds()
   const pronunciationIsOpen = useAtomValue(pronunciationIsOpenAtom)
+  const pronunciationConfig = useAtomValue(pronunciationConfigAtom)
   const [isHoveringWord, setIsHoveringWord] = useState(false)
   const currentLanguage = useAtomValue(currentDictInfoAtom).language
   const currentLanguageCategory = useAtomValue(currentDictInfoAtom).languageCategory
@@ -129,10 +132,10 @@ export default function WordComponent({ word, onFinish }: { word: Word; onFinish
   )
 
   useEffect(() => {
-    if (wordState.inputWord.length === 0 && state.isTyping) {
+    if (!wordDictationConfig.isOpen && wordState.inputWord.length === 0 && state.isTyping) {
       wordPronunciationIconRef.current?.play && wordPronunciationIconRef.current?.play()
     }
-  }, [state.isTyping, wordState.inputWord.length, wordPronunciationIconRef.current?.play])
+  }, [state.isTyping, wordState.inputWord.length, wordDictationConfig.isOpen])
 
   const getLetterVisible = useCallback(
     (index: number) => {
@@ -268,6 +271,25 @@ export default function WordComponent({ word, onFinish }: { word: Word; onFinish
         letterTimeArray: wordState.letterTimeArray,
         letterMistake: wordState.letterMistake,
       })
+      if (wordDictationConfig.isOpen && pronunciationIsOpen && pronunciationConfig.type) {
+        let pronounceWord = word.name
+        if (currentLanguage === 'hapin') {
+          if (/[\u0400-\u04FF]/.test(word.notation || '')) {
+            pronounceWord = word.notation || ''
+          } else if (word.trans[2]) {
+            pronounceWord = word.trans[2]
+          }
+        }
+        const soundUrl = generateWordSoundSrc(pronounceWord, pronunciationConfig.type)
+        if (soundUrl) {
+          const audio = new Audio(soundUrl)
+          audio.volume = pronunciationConfig.volume
+          audio.playbackRate = pronunciationConfig.rate ?? 1
+          audio.play().catch(() => {
+            // ignore play error (e.g. user gesture required)
+          })
+        }
+      }
 
       onFinish()
     }
